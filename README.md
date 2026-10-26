@@ -1,0 +1,2 @@
+# TeachAI
+school project
