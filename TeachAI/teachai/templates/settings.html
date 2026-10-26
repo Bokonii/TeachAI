@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}Settings · TeachAI{% endblock %}
+{% block body_class %}settings-page{% endblock %}
+{% block body %}
+<div class="settings-shell">
+  <header class="settings-topbar">
+    <a class="brand" href="{{ url_for('main.workspace') }}">
+      <span class="brand-mark">T<span class="brand-spark">✦</span></span>
+      <span class="brand-name">Teach<span>AI</span></span>
+    </a>
+    <a class="btn btn-ghost" href="{{ url_for('main.workspace') }}">
+      <svg class="icon"><use href="#i-chevron-left"></use></svg>
+      Back to workspace
+    </a>
+  </header>
+
+  <main class="settings-main">
+    <header class="settings-heading">
+      <p class="eyebrow">Your workspace</p>
+      <h1>Settings</h1>
+      <p>Manage your account, connect an AI provider, and decide how TeachAI helps you study.</p>
+    </header>
+
+    <div class="settings-grid">
+      <section class="settings-card profile-card">
+        <div class="settings-card-head">
+          <div>
+            <p class="eyebrow">Account</p>
+            <h2>Your profile</h2>
+          </div>
+        </div>
+        <div class="profile-large">
+          <span class="user-avatar profile-avatar">{{ g.user['name'][0]|upper }}</span>
+          <div>
+            <strong>{{ g.user['name'] }}</strong>
+            <span>{{ g.user['email'] }}</span>
+          </div>
+        </div>
+        <div class="profile-stats">
+          <div><strong>{{ conversation_count }}</strong><span>conversations</span></div>
+          <div><strong>{{ reminder_count }}</strong><span>reminders</span></div>
+        </div>
+        <p class="settings-note">Your account keeps each user's conversations, groups, and calendar separate on this computer.</p>
+      </section>
+
+      <section class="settings-card ai-card">
+        <div class="settings-card-head">
+          <div>
+            <p class="eyebrow">AI provider</p>
+            <h2>Connect your study assistant</h2>
+          </div>
+          {% if settings.configured %}
+          <span class="connection-pill is-online"><span></span>Connected</span>
+          {% else %}
+          <span class="connection-pill"><span></span>Demo mode</span>
+          {% endif %}
+        </div>
+
+        <p class="settings-intro">
+          TeachAI works without a key for reminders and study organization. To get full step-by-step tutoring, connect any OpenAI-compatible provider. Your key is stored only in this app's local database.
+        </p>
+
+        <form method="post" class="settings-form" id="ai-settings-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="field">
+            <label for="provider">Provider</label>
+            <select id="provider" name="provider">
+              {% for key, item in providers.items() %}
+              <option value="{{ key }}" {% if settings.provider == key %}selected{% endif %}>{{ item.label }}</option>
+              {% endfor %}
+            </select>
+            <p class="field-hint" id="provider-hint">Choose the service that will answer your study questions.</p>
+          </div>
+
+          <div class="field-grid">
+            <div class="field">
+              <label for="base_url">API base URL</label>
+              <input id="base_url" name="base_url" type="url" value="{{ settings.base_url }}" placeholder="https://api.openai.com/v1" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="model">Model</label>
+              <input id="model" name="model" type="text" value="{{ settings.model }}" placeholder="gpt-4o-mini" autocomplete="off">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="api_key">API key</label>
+            <div class="password-wrap">
+              <input id="api_key" name="api_key" type="password" placeholder="{% if settings.api_key %}A key is saved — leave blank to keep it{% else %}Paste your API key{% endif %}" autocomplete="off">
+              <button type="button" class="password-toggle" data-toggle-password="api_key" aria-label="Show API key">Show</button>
+            </div>
+            {% if settings.api_key %}
+            <label class="check-line">
+              <input type="checkbox" name="remove_key" value="1">
+              <span>Remove the saved API key and switch back to demo mode</span>
+            </label>
+            {% endif %}
+          </div>
+
+          <div class="settings-actions">
+            <button type="submit" class="btn btn-primary">Save settings</button>
+            <button type="button" class="btn btn-ghost" id="test-ai-btn" {% if not settings.configured %}disabled{% endif %}>
+              <svg class="icon"><use href="#i-sparkles"></use></svg>
+              Test connection
+            </button>
+            <span class="test-result" id="test-result" role="status"></span>
+          </div>
+        </form>
+
+        <div class="provider-help">
+          <h3>Where to get a key</h3>
+          <ul>
+            <li><strong>Google Gemini</strong> — a free tier is available through Google AI Studio.</li>
+            <li><strong>OpenAI</strong> — create a key in the OpenAI platform dashboard.</li>
+            <li><strong>Groq / OpenRouter</strong> — affordable hosted options with OpenAI-compatible APIs.</li>
+            <li><strong>Ollama</strong> — private and local. Run <code>ollama serve</code> and use the default URL.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="settings-card">
+        <div class="settings-card-head">
+          <div>
+            <p class="eyebrow">Privacy</p>
+            <h2>How your data is handled</h2>
+          </div>
+          <span class="badge-soft">Local first</span>
+        </div>
+        <ul class="privacy-list">
+          <li><span><svg class="icon"><use href="#i-check-circle"></use></svg></span>Accounts, chats, groups, and reminders are stored in a local SQLite database.</li>
+          <li><span><svg class="icon"><use href="#i-check-circle"></use></svg></span>Passwords are stored as one-way hashes, never as plain text.</li>
+          <li><span><svg class="icon"><use href="#i-check-circle"></use></svg></span>When cloud AI is connected, the active conversation is sent to your chosen provider to generate a reply.</li>
+          <li><span><svg class="icon"><use href="#i-check-circle"></use></svg></span>Your API key is only sent to that provider — never to any other service.</li>
+        </ul>
+      </section>
+
+      <section class="settings-card quick-card">
+        <div class="settings-card-head">
+          <div>
+            <p class="eyebrow">Tips</p>
+            <h2>Make the assistant yours</h2>
+          </div>
+        </div>
+        <div class="tip-list">
+          <div class="tip"><span>01</span><p>Use <strong>study groups</strong> for each subject, then keep conversations focused on one topic.</p></div>
+          <div class="tip"><span>02</span><p>Try voice commands like <em>“Remind me to submit my paper next Friday at 9 AM.”</em></p></div>
+          <div class="tip"><span>03</span><p>Ask the assistant to <strong>quiz you</strong> or explain a concept at a beginner, intermediate, or advanced level.</p></div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/settings.js') }}" defer></script>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Create account · TeachAI{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+{% block body %}
+<div class="auth-shell">
+  <section class="auth-showcase auth-showcase-register">
+    <a class="brand brand-light" href="{{ url_for('auth.login') }}" aria-label="TeachAI home">
+      <span class="brand-mark">T<span class="brand-spark">✦</span></span>
+      <span class="brand-name">Teach<span>AI</span></span>
+    </a>
+
+    <div class="showcase-copy">
+      <p class="eyebrow">Start your study space</p>
+      <h1>Everything you're learning,<br><em>in one place.</em></h1>
+      <p class="showcase-lead">TeachAI keeps your explanations, code fixes, subject groups, and deadlines together — so you can focus on actually learning.</p>
+      <div class="stat-row">
+        <div class="stat"><strong>24/7</strong><span>study support</span></div>
+        <div class="stat"><strong>1</strong><span>organized workspace</span></div>
+        <div class="stat"><strong>0</strong><span>lost reminders</span></div>
+      </div>
+    </div>
+
+    <div class="quote-card">
+      <svg class="quote-mark icon"><use href="#i-sparkles"></use></svg>
+      <p>“I stopped juggling five apps and started actually finishing my study sessions.”</p>
+      <span>— a very relieved student</span>
+    </div>
+
+    <p class="showcase-foot">No subscriptions. No clutter. Just a better study routine.</p>
+  </section>
+
+  <section class="auth-form-side">
+    <div class="auth-card auth-card-register">
+      <div class="auth-mobile-brand">
+        <a class="brand" href="{{ url_for('auth.login') }}">
+          <span class="brand-mark">T<span class="brand-spark">✦</span></span>
+          <span class="brand-name">Teach<span>AI</span></span>
+        </a>
+      </div>
+      <div class="auth-heading">
+        <p class="eyebrow">Create your account</p>
+        <h2>Make studying feel lighter.</h2>
+        <p>It takes less than a minute to set up.</p>
+      </div>
+
+      <form method="post" class="auth-form" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="field">
+          <label for="name">Your name</label>
+          <input id="name" name="name" type="text" autocomplete="name" placeholder="Alex Dela Cruz" maxlength="60" required autofocus>
+        </div>
+        <div class="field">
+          <label for="email">Email address</label>
+          <input id="email" name="email" type="email" autocomplete="email" placeholder="you@school.edu" maxlength="254" required>
+        </div>
+        <div class="field-grid">
+          <div class="field">
+            <label for="password">Password</label>
+            <div class="password-wrap">
+              <input id="password" name="password" type="password" autocomplete="new-password" placeholder="8+ characters" minlength="8" required>
+              <button type="button" class="password-toggle" data-toggle-password="password" aria-label="Show password">Show</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="confirm_password">Confirm password</label>
+            <div class="password-wrap">
+              <input id="confirm_password" name="confirm_password" type="password" autocomplete="new-password" placeholder="Repeat password" minlength="8" required>
+            </div>
+          </div>
+        </div>
+        <p class="field-hint">Use at least 8 characters. Your password is stored as a secure hash.</p>
+        <button class="btn btn-primary btn-auth" type="submit">
+          Create my workspace
+          <svg class="icon"><use href="#i-arrow-right"></use></svg>
+        </button>
+      </form>
+
+      <p class="auth-switch">Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+    </div>
+  </section>
+</div>
+{% endblock %}

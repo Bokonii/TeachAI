@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Oops · TeachAI{% endblock %}
+{% block body_class %}error-page{% endblock %}
+{% block body %}
+<main class="error-shell">
+  <a class="brand" href="{{ url_for('main.workspace') }}">
+    <span class="brand-mark">T<span class="brand-spark">✦</span></span>
+    <span class="brand-name">Teach<span>AI</span></span>
+  </a>
+  <div class="error-card">
+    <p class="error-code">{{ code }}</p>
+    <h1>Let’s get you back on track.</h1>
+    <p>{{ message }}</p>
+    <div class="error-actions">
+      <a class="btn btn-primary" href="{{ url_for('main.workspace') }}">Back to workspace</a>
+      <button class="btn btn-ghost" type="button" onclick="history.back()">Go back</button>
+    </div>
+  </div>
+</main>
+{% endblock %}

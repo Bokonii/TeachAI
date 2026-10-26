@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Log in · TeachAI{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+{% block body %}
+<div class="auth-shell">
+  <section class="auth-showcase">
+    <a class="brand brand-light" href="{{ url_for('auth.login') }}" aria-label="TeachAI home">
+      <span class="brand-mark">T<span class="brand-spark">✦</span></span>
+      <span class="brand-name">Teach<span>AI</span></span>
+    </a>
+
+    <div class="showcase-copy">
+      <p class="eyebrow">Your 24/7 study partner</p>
+      <h1>Study smarter.<br>Stay <em>organized.</em></h1>
+      <p class="showcase-lead">One calm place for explanations, code help, subject groups, and every deadline that matters.</p>
+      <ul class="feature-list">
+        <li><span class="feature-icon"><svg class="icon"><use href="#i-sparkles"></use></svg></span>Step-by-step tutoring that meets you where you are</li>
+        <li><span class="feature-icon"><svg class="icon"><use href="#i-folder"></use></svg></span>Conversations organized by subject and project</li>
+        <li><span class="feature-icon"><svg class="icon"><use href="#i-calendar"></use></svg></span>Reminders you can create just by asking</li>
+      </ul>
+    </div>
+
+    <div class="showcase-preview" aria-hidden="true">
+      <div class="preview-top">
+        <span class="preview-dot"></span><span class="preview-dot"></span><span class="preview-dot"></span>
+        <span class="preview-title">Mathematics · Derivatives</span>
+      </div>
+      <div class="preview-message user">Explain derivatives like I'm a beginner.</div>
+      <div class="preview-message assistant">
+        <span class="mini-avatar">T</span>
+        <div>
+          <p>A derivative measures how fast something changes at one exact moment.</p>
+          <div class="preview-code">f(x) = x² &nbsp;→&nbsp; f'(x) = 2x</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="showcase-foot">Built for students who want to understand more — not just finish faster.</p>
+  </section>
+
+  <section class="auth-form-side">
+    <div class="auth-card">
+      <div class="auth-mobile-brand">
+        <a class="brand" href="{{ url_for('auth.login') }}">
+          <span class="brand-mark">T<span class="brand-spark">✦</span></span>
+          <span class="brand-name">Teach<span>AI</span></span>
+        </a>
+      </div>
+      <div class="auth-heading">
+        <p class="eyebrow">Welcome back</p>
+        <h2>Pick up where you left off.</h2>
+        <p>Your chats, groups, and schedule are waiting.</p>
+      </div>
+
+      <form method="post" class="auth-form" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="field">
+          <label for="email">Email address</label>
+          <input id="email" name="email" type="email" autocomplete="email" placeholder="you@school.edu" required autofocus>
+        </div>
+        <div class="field">
+          <div class="label-row">
+            <label for="password">Password</label>
+          </div>
+          <div class="password-wrap">
+            <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required>
+            <button type="button" class="password-toggle" data-toggle-password="password" aria-label="Show password">Show</button>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-auth" type="submit">
+          Log in
+          <svg class="icon"><use href="#i-arrow-right"></use></svg>
+        </button>
+      </form>
+
+      <p class="auth-switch">New to TeachAI? <a href="{{ url_for('auth.register') }}">Create your account</a></p>
+      <p class="auth-legal">A local school project. Your data stays on this computer.</p>
+    </div>
+  </section>
+</div>
+{% endblock %}

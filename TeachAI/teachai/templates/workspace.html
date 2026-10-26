@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+{% block title %}Workspace · TeachAI{% endblock %}
+{% block body_class %}workspace-page{% endblock %}
+{% block body %}
+<div class="workspace-shell" id="workspace">
+  <aside class="sidebar" id="sidebar" aria-label="Workspace navigation">
+    <div class="sidebar-head">
+      <a class="brand" href="{{ url_for('main.workspace') }}" aria-label="TeachAI workspace">
+        <span class="brand-mark">T<span class="brand-spark">✦</span></span>
+        <span class="brand-name">Teach<span>AI</span></span>
+      </a>
+      <button class="icon-btn sidebar-close" id="sidebar-close" type="button" aria-label="Close sidebar">
+        <svg class="icon"><use href="#i-x"></use></svg>
+      </button>
+    </div>
+
+    <button class="new-chat-btn" id="new-chat-btn" type="button">
+      <span class="new-chat-icon"><svg class="icon"><use href="#i-plus"></use></svg></span>
+      <span>New conversation</span>
+      <kbd>N</kbd>
+    </button>
+
+    <label class="sidebar-search" for="conversation-search">
+      <svg class="icon"><use href="#i-search"></use></svg>
+      <input id="conversation-search" type="search" placeholder="Search conversations" autocomplete="off">
+    </label>
+
+    <section class="group-section">
+      <div class="section-heading">
+        <span>Study groups</span>
+        <button class="text-icon-btn" id="manage-groups-btn" type="button" title="Manage groups">
+          <svg class="icon"><use href="#i-settings"></use></svg>
+        </button>
+      </div>
+      <div class="group-tabs" id="group-tabs" role="tablist" aria-label="Study groups"></div>
+    </section>
+
+    <section class="conversation-section">
+      <div class="section-heading">
+        <span id="conversation-section-label">Recent chats</span>
+        <span class="count-badge" id="conversation-count">0</span>
+      </div>
+      <nav class="conversation-list" id="conversation-list" aria-label="Conversations"></nav>
+    </section>
+
+    <div class="sidebar-foot">
+      <a class="sidebar-link" href="{{ url_for('main.settings') }}">
+        <svg class="icon"><use href="#i-settings"></use></svg>
+        <span>Settings</span>
+      </a>
+      <div class="user-card">
+        <span class="user-avatar" id="sidebar-user-avatar">{{ g.user['name'][0]|upper }}</span>
+        <span class="user-copy">
+          <strong id="sidebar-user-name">{{ g.user['name'] }}</strong>
+          <span id="sidebar-user-email">{{ g.user['email'] }}</span>
+        </span>
+        <form method="post" action="{{ url_for('auth.logout') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="icon-btn logout-btn" type="submit" title="Log out" aria-label="Log out">
+            <svg class="icon"><use href="#i-logout"></use></svg>
+          </button>
+        </form>
+      </div>
+    </div>
+  </aside>
+
+  <div class="sidebar-scrim" id="sidebar-scrim" hidden></div>
+
+  <main class="chat-main">
+    <header class="chat-header">
+      <button class="icon-btn mobile-menu-btn" id="sidebar-toggle" type="button" aria-label="Open sidebar">
+        <svg class="icon"><use href="#i-menu"></use></svg>
+      </button>
+
+      <div class="chat-title-block">
+        <div class="chat-breadcrumb">
+          <span class="group-dot" id="header-group-dot"></span>
+          <span id="header-group">Workspace</span>
+          <svg class="icon breadcrumb-chevron"><use href="#i-chevron-right"></use></svg>
+          <span id="header-context">New conversation</span>
+        </div>
+        <h1 id="header-title">What are we learning?</h1>
+      </div>
+
+      <div class="chat-header-actions">
+        <span class="ai-status {% if ai_configured %}is-online{% endif %}" id="ai-status" title="{% if ai_configured %}Cloud AI connected{% else %}Built-in demo mode{% endif %}">
+          <span class="status-dot"></span>
+          <span id="ai-status-label">{% if ai_configured %}AI connected{% else %}Demo mode{% endif %}</span>
+        </span>
+        <button class="icon-btn" id="rename-chat-btn" type="button" title="Rename conversation" disabled>
+          <svg class="icon"><use href="#i-edit"></use></svg>
+        </button>
+        <div class="menu-wrap">
+          <button class="icon-btn" id="chat-menu-btn" type="button" title="Conversation options" aria-haspopup="menu" aria-expanded="false" disabled>
+            <svg class="icon"><use href="#i-more"></use></svg>
+          </button>
+          <div class="dropdown-menu" id="chat-menu" role="menu" hidden>
+            <button type="button" role="menuitem" id="menu-rename">
+              <svg class="icon"><use href="#i-edit"></use></svg> Rename
+            </button>
+            <label class="dropdown-label" for="menu-group-select">Move to group</label>
+            <select id="menu-group-select" class="dropdown-select" aria-label="Move conversation to group"></select>
+            <div class="dropdown-divider"></div>
+            <button type="button" role="menuitem" class="danger" id="menu-delete">
+              <svg class="icon"><use href="#i-trash"></use></svg> Delete conversation
+            </button>
+          </div>
+        </div>
+        <button class="icon-btn agenda-toggle-btn" id="agenda-toggle" type="button" title="Open study calendar" aria-label="Open study calendar">
+          <svg class="icon"><use href="#i-calendar"></use></svg>
+        </button>
+      </div>
+    </header>
+
+    <section class="chat-scroll" id="chat-scroll" aria-live="polite">
+      <div class="empty-state" id="empty-state">
+        <div class="empty-orbit" aria-hidden="true">
+          <span class="orbit-line"></span>
+          <span class="orbit-core"><svg class="icon"><use href="#i-sparkles"></use></svg></span>
+          <span class="orbit-chip chip-1">∑</span>
+          <span class="orbit-chip chip-2">&lt;/&gt;</span>
+          <span class="orbit-chip chip-3">Aa</span>
+        </div>
+        <p class="eyebrow" id="empty-eyebrow">Your study space</p>
+        <h2 id="empty-title">What are we learning today?</h2>
+        <p class="empty-subtitle">Ask for an explanation, paste an error, plan a study session, or set a reminder. I’ll meet you at your level.</p>
+        <div class="prompt-grid">
+          <button class="prompt-card" type="button" data-prompt="Explain the water cycle step by step, with a simple example.">
+            <span class="prompt-icon tone-violet"><svg class="icon"><use href="#i-bulb"></use></svg></span>
+            <span><strong>Explain a concept</strong><small>Break down a tricky topic</small></span>
+            <svg class="icon prompt-arrow"><use href="#i-arrow-right"></use></svg>
+          </button>
+          <button class="prompt-card" type="button" data-prompt="Help me debug this Python error: TypeError: can only concatenate str (not &quot;int&quot;) to str">
+            <span class="prompt-icon tone-teal"><svg class="icon"><use href="#i-code"></use></svg></span>
+            <span><strong>Debug my code</strong><small>Find the cause, then the fix</small></span>
+            <svg class="icon prompt-arrow"><use href="#i-arrow-right"></use></svg>
+          </button>
+          <button class="prompt-card" type="button" data-prompt="Make me a 3-day study plan for my upcoming math exam.">
+            <span class="prompt-icon tone-amber"><svg class="icon"><use href="#i-book"></use></svg></span>
+            <span><strong>Build a study plan</strong><small>Turn a deadline into steps</small></span>
+            <svg class="icon prompt-arrow"><use href="#i-arrow-right"></use></svg>
+          </button>
+          <button class="prompt-card" type="button" data-prompt="Remind me to review my notes tomorrow at 6 PM.">
+            <span class="prompt-icon tone-rose"><svg class="icon"><use href="#i-calendar"></use></svg></span>
+            <span><strong>Set a reminder</strong><small>Just say it in plain language</small></span>
+            <svg class="icon prompt-arrow"><use href="#i-arrow-right"></use></svg>
+          </button>
+        </div>
+        <div class="empty-meta">
+          <span><svg class="icon"><use href="#i-mic"></use></svg> Voice ready</span>
+          <span><svg class="icon"><use href="#i-folder"></use></svg> Organized by subject</span>
+          <span><svg class="icon"><use href="#i-bell"></use></svg> Never miss a deadline</span>
+        </div>
+      </div>
+
+      <div class="message-list" id="message-list"></div>
+
+      <div class="typing-row" id="typing-indicator" hidden>
+        <span class="assistant-avatar"><span class="mini-brand">T</span></span>
+        <div class="typing-bubble" aria-label="TeachAI is thinking">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+      <div class="scroll-anchor" id="scroll-anchor"></div>
+    </section>
+
+    <div class="composer-area">
+      <div class="voice-status" id="voice-status" hidden>
+        <span class="voice-pulse"></span>
+        <span id="voice-status-text">Listening… speak your question</span>
+        <button type="button" class="voice-cancel" id="voice-cancel">Cancel</button>
+      </div>
+      <form class="composer" id="composer">
+        <textarea id="message-input" rows="1" maxlength="6000" placeholder="Ask TeachAI anything…" aria-label="Message TeachAI"></textarea>
+        <div class="composer-actions">
+          <button class="icon-btn mic-btn" id="mic-btn" type="button" title="Ask with your voice" aria-label="Ask with your voice">
+            <svg class="icon"><use href="#i-mic"></use></svg>
+          </button>
+          <button class="send-btn" id="send-btn" type="submit" title="Send message" aria-label="Send message" disabled>
+            <svg class="icon"><use href="#i-send"></use></svg>
+          </button>
+        </div>
+      </form>
+      <p class="composer-hint">
+        <span><kbd>Enter</kbd> send</span><span class="hint-dot">·</span>
+        <span><kbd>Shift</kbd> + <kbd>Enter</kbd> new line</span><span class="hint-dot">·</span>
+        <span id="composer-mode">{% if ai_configured %}Powered by {{ ai_model }}{% else %}Demo mode — add an AI key in Settings{% endif %}</span>
+      </p>
+    </div>
+  </main>
+
+  <aside class="agenda-panel" id="agenda-panel" aria-label="Study calendar">
+    <div class="agenda-header">
+      <div>
+        <p class="eyebrow">Plan &amp; remember</p>
+        <h2>Study calendar</h2>
+      </div>
+      <div class="agenda-header-actions">
+        <button class="icon-btn" id="add-reminder-btn" type="button" title="Add reminder" aria-label="Add reminder">
+          <svg class="icon"><use href="#i-plus"></use></svg>
+        </button>
+        <button class="icon-btn agenda-close-btn" id="agenda-close" type="button" title="Close calendar" aria-label="Close calendar">
+          <svg class="icon"><use href="#i-x"></use></svg>
+        </button>
+      </div>
+    </div>
+
+    <section class="mini-calendar">
+      <div class="calendar-nav">
+        <button class="icon-btn small" id="cal-prev" type="button" aria-label="Previous month"><svg class="icon"><use href="#i-chevron-left"></use></svg></button>
+        <button class="calendar-month-btn" id="cal-today" type="button" title="Go to today"><span id="cal-month-label">October 2026</span></button>
+        <button class="icon-btn small" id="cal-next" type="button" aria-label="Next month"><svg class="icon"><use href="#i-chevron-right"></use></svg></button>
+      </div>
+      <div class="calendar-weekdays" aria-hidden="true">
+        <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+      </div>
+      <div class="calendar-grid" id="calendar-grid" role="grid" aria-label="Calendar"></div>
+    </section>
+
+    <div class="agenda-summary">
+      <span class="agenda-summary-icon"><svg class="icon"><use href="#i-clock"></use></svg></span>
+      <div>
+        <strong id="next-reminder-title">No reminders yet</strong>
+        <span id="next-reminder-meta">Create one with your voice or the + button</span>
+      </div>
+    </div>
+
+    <section class="upcoming-section">
+      <div class="agenda-section-head">
+        <h3 id="reminder-list-title">Tasks for this day</h3>
+        <span class="count-badge" id="reminder-count">0</span>
+      </div>
+      <div class="reminder-list" id="reminder-list"></div>
+    </section>
+
+    <div class="agenda-foot">
+      <button class="notify-btn" id="notify-btn" type="button">
+        <span class="notify-icon"><svg class="icon"><use href="#i-bell"></use></svg></span>
+        <span>
+          <strong>Desktop alerts</strong>
+          <small id="notify-status">Get notified when a reminder is due</small>
+        </span>
+        <svg class="icon notify-arrow"><use href="#i-chevron-right"></use></svg>
+      </button>
+    </div>
+  </aside>
+  <div class="agenda-scrim" id="agenda-scrim" hidden></div>
+</div>
+
+<!-- Reminder editor -->
+<div class="modal" id="reminder-modal" aria-hidden="true">
+  <div class="modal-backdrop" data-close-modal="reminder-modal"></div>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="reminder-modal-title">
+    <div class="modal-head">
+      <div>
+        <p class="eyebrow">Stay on track</p>
+        <h2 id="reminder-modal-title">New reminder</h2>
+      </div>
+      <button class="icon-btn" type="button" data-close-modal="reminder-modal" aria-label="Close"><svg class="icon"><use href="#i-x"></use></svg></button>
+    </div>
+    <form id="reminder-form">
+      <input type="hidden" id="reminder-id">
+      <div class="field">
+        <label for="reminder-title">Task title</label>
+        <input id="reminder-title" type="text" maxlength="200" placeholder="e.g. Review calculus notes" required autocomplete="off">
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <label for="reminder-date">Date</label>
+          <input id="reminder-date" type="date" required>
+        </div>
+        <div class="field">
+          <label for="reminder-time">Time</label>
+          <input id="reminder-time" type="time" required>
+        </div>
+      </div>
+      <div class="field">
+        <label for="reminder-notes">Notes <span class="optional">(optional)</span></label>
+        <textarea id="reminder-notes" rows="3" maxlength="2000" placeholder="What exactly should you do?"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-danger-ghost" id="delete-reminder-btn" hidden>
+          <svg class="icon"><use href="#i-trash"></use></svg> Delete
+        </button>
+        <span class="modal-spacer"></span>
+        <button type="button" class="btn btn-ghost" data-close-modal="reminder-modal">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="save-reminder-btn">Save reminder</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Group editor -->
+<div class="modal" id="group-modal" aria-hidden="true">
+  <div class="modal-backdrop" data-close-modal="group-modal"></div>
+  <div class="modal-card modal-card-small" role="dialog" aria-modal="true" aria-labelledby="group-modal-title">
+    <div class="modal-head">
+      <div>
+        <p class="eyebrow">Organize your subjects</p>
+        <h2 id="group-modal-title">New study group</h2>
+      </div>
+      <button class="icon-btn" type="button" data-close-modal="group-modal" aria-label="Close"><svg class="icon"><use href="#i-x"></use></svg></button>
+    </div>
+    <form id="group-form">
+      <input type="hidden" id="group-id">
+      <div class="field">
+        <label for="group-name">Group name</label>
+        <input id="group-name" type="text" maxlength="40" placeholder="e.g. General, Mathematics, Thesis" required autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Color</label>
+        <div class="color-palette" id="color-palette">
+          <button type="button" class="color-swatch" data-color="#5B5BD6" style="--swatch:#5B5BD6" aria-label="Indigo"></button>
+          <button type="button" class="color-swatch" data-color="#0F766E" style="--swatch:#0F766E" aria-label="Teal"></button>
+          <button type="button" class="color-swatch" data-color="#D97706" style="--swatch:#D97706" aria-label="Amber"></button>
+          <button type="button" class="color-swatch" data-color="#BE185D" style="--swatch:#BE185D" aria-label="Rose"></button>
+          <button type="button" class="color-swatch" data-color="#2563EB" style="--swatch:#2563EB" aria-label="Blue"></button>
+          <button type="button" class="color-swatch" data-color="#7C3AED" style="--swatch:#7C3AED" aria-label="Violet"></button>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" data-close-modal="group-modal">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="save-group-btn">Create group</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Group manager -->
+<div class="modal" id="manage-groups-modal" aria-hidden="true">
+  <div class="modal-backdrop" data-close-modal="manage-groups-modal"></div>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="manage-groups-title">
+    <div class="modal-head">
+      <div>
+        <p class="eyebrow">Keep it tidy</p>
+        <h2 id="manage-groups-title">Manage study groups</h2>
+      </div>
+      <button class="icon-btn" type="button" data-close-modal="manage-groups-modal" aria-label="Close"><svg class="icon"><use href="#i-x"></use></svg></button>
+    </div>
+    <div class="manage-groups-list" id="manage-groups-list"></div>
+    <div class="modal-actions">
+      <span class="modal-spacer"></span>
+      <button type="button" class="btn btn-ghost" data-close-modal="manage-groups-modal">Done</button>
+      <button type="button" class="btn btn-primary" id="manage-add-group-btn"><svg class="icon"><use href="#i-plus"></use></svg> New group</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/workspace.js') }}" defer></script>
+{% endblock %}
